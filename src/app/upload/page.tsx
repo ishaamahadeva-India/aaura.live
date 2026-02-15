@@ -31,7 +31,7 @@ import { Progress } from '@/components/ui/progress';
 import { FirestorePermissionError } from '@/lib/firebase/errors';
 import { errorEmitter } from '@/lib/firebase/error-emitter';
 import { FirebaseError } from 'firebase/app';
-
+import { is412StorageError } from '@/lib/firebase/storage-errors';
 
 const formSchema = z.object({
   title_en: z.string().min(5, { message: 'English title must be at least 5 characters.' }),
@@ -182,20 +182,6 @@ const onSubmit = async (data: FormValues) => {
     }
     
     try {
-      const mediaId = doc(collection(db, 'media')).id;
-
-      // SAFE FILENAME: aggressive sanitization + UUID to avoid session conflicts
-      const sanitizedBaseName = mediaFile.name
-        .replace(/\s+/g, "_")
-        .replace(/[^a-zA-Z0-9._-]/g, "_")
-        .replace(/_{2,}/g, "_")
-        .replace(/^_+|_+$/g, "");
-      const safeName = `${crypto.randomUUID()}-${sanitizedBaseName}`;
-
-      // Use default Firebase Storage for ALL uploads (videos and non-videos)
-      const storagePath = `media/${user.uid}/${mediaId}/${safeName}`;
-      const storageRef = ref(storage, storagePath);
-
       // Infer content type from file extension if not provided
       let contentType = mediaFile.type;
       if (!contentType) {
@@ -213,39 +199,63 @@ const onSubmit = async (data: FormValues) => {
         contentType = ext ? mimeTypes[ext] || 'application/octet-stream' : 'application/octet-stream';
       }
 
-      const uploadTask = uploadBytesResumable(storageRef, mediaFile, {
-        contentType: contentType,
-      });
-      uploadTaskRef.current = uploadTask;
-      
+      let mediaId = doc(collection(db, 'media')).id;
       let fixedURL: string;
       let uploadedStoragePath: string;
-      
-      await new Promise<void>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-          },
-          (error) => {
-            uploadTaskRef.current = null;
-            uploadInProgressRef.current = false;
-            reject(error);
-          },
-          async () => {
-            try {
-              fixedURL = await getDownloadURL(uploadTask.snapshot.ref);
-              uploadedStoragePath = storagePath;
-              resolve();
-            } catch (urlError) {
-              uploadTaskRef.current = null;
-              uploadInProgressRef.current = false;
-              reject(urlError);
-            }
-          }
-        );
-      });
+      const maxAttempts = 2;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (attempt > 0) {
+          mediaId = doc(collection(db, 'media')).id;
+          toast({ title: 'Retrying upload', description: 'Starting a new upload session.', duration: 3000 });
+        }
+
+        const sanitizedBaseName = mediaFile.name
+          .replace(/\s+/g, "_")
+          .replace(/[^a-zA-Z0-9._-]/g, "_")
+          .replace(/_{2,}/g, "_")
+          .replace(/^_+|_+$/g, "");
+        const safeName = `${crypto.randomUUID()}-${sanitizedBaseName}`;
+        const storagePath = `media/${user.uid}/${mediaId}/${safeName}`;
+        const storageRef = ref(storage, storagePath);
+
+        const uploadTask = uploadBytesResumable(storageRef, mediaFile, {
+          contentType,
+        });
+        uploadTaskRef.current = uploadTask;
+
+        try {
+          await new Promise<void>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+              },
+              (error) => {
+                uploadTaskRef.current = null;
+                uploadInProgressRef.current = false;
+                reject(error);
+              },
+              async () => {
+                try {
+                  fixedURL = await getDownloadURL(uploadTask.snapshot.ref);
+                  uploadedStoragePath = storagePath;
+                  resolve();
+                } catch (urlError) {
+                  uploadTaskRef.current = null;
+                  uploadInProgressRef.current = false;
+                  reject(urlError);
+                }
+              }
+            );
+          });
+          break;
+        } catch (e) {
+          if (is412StorageError(e) && attempt < maxAttempts - 1) continue;
+          throw e;
+        }
+      }
 
       // Start a transition *after* the upload is complete to handle doc creation
       startTransition(async () => {
@@ -344,10 +354,12 @@ const onSubmit = async (data: FormValues) => {
       setIsUploading(false);
       uploadTaskRef.current = null;
       uploadInProgressRef.current = false;
-      if (uploadError.code === 'storage/unauthorized') {
+      if (uploadError?.code === 'storage/unauthorized') {
         toast({ variant: "destructive", title: "Permission Denied", description: "You do not have permission to upload. Please ensure you are logged in correctly." });
+      } else if (is412StorageError(uploadError)) {
+        toast({ variant: "destructive", title: "Upload session expired", description: "Please try uploading again." });
       } else {
-        toast({ variant: "destructive", title: "File Upload Failed", description: uploadError.message || "Could not upload your file. Please try again." });
+        toast({ variant: "destructive", title: "File Upload Failed", description: uploadError?.message || "Could not upload your file. Please try again." });
       }
     }
   };

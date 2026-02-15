@@ -112,6 +112,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontBody.variable
         )}
       >
+        {/* Catch Firebase permission rejections before React — prevents "Uncaught (in promise)" in console */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                function isFirebasePermission(r){
+                  if(!r||typeof r!=='object')return false;
+                  var c=r.code,m=r.message;
+                  return c==='permission-denied'||(typeof m==='string'&&m.indexOf('Missing or insufficient permissions')!==-1);
+                }
+                window.addEventListener('unhandledrejection',function(ev){
+                  if(isFirebasePermission(ev.reason)){
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    window.dispatchEvent(new CustomEvent('firebase-permission-error',{detail:ev.reason}));
+                  }
+                });
+              })();
+            `,
+          }}
+        />
         <FirebaseProvider>
           <LanguageProvider>
             <ActiveVideoProvider>
