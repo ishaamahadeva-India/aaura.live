@@ -1,0 +1,216 @@
+
+{
+  "indexes": [
+    {
+      "collectionGroup": "temples",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rating", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "deities",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "festivals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uploadDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "inventory", "order": "ASCENDING" },
+        { "fieldPath": "popularity", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "temples",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "location.state", "order": "ASCENDING" },
+        { "fieldPath": "deity.name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "uploadDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "language", "order": "ASCENDING" },
+        { "fieldPath": "uploadDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contentId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+     {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contentId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "likes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookmarks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "playlists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "virtualOfferings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "channels",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "followerCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contextType", "order": "ASCENDING" },
+        { "fieldPath": "contextId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "mediaType", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "uploadDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "contests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "chants",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "likes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contentId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+        "collectionGroup": "rituals",
+        "queryScope": "COLLECTION",
+        "fields": [
+            { "fieldPath": "slug", "order": "ASCENDING" }
+        ]
+    },
+    {
+      "collectionGroup": "samuhikaa_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "scheduledAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "samuhikaa_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "scheduledAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

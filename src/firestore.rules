@@ -1,0 +1,277 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 Helper Functions
+    // ---------------------------------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isSuperAdmin() {
+      // UID for the designated super administrator
+      return request.auth.uid == "9RwsoEEkWPR3Wpv6wKZmhos1xTG2";
+    }
+
+    function isCreator(docData) {
+      // Checks if the user is the owner via common field names
+      return isOwner(docData.creatorId) || isOwner(docData.authorId) || isOwner(docData.userId);
+    }
+    
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 Public Read-Only Content (Admin-Managed)
+    // ---------------------------------------------------------------------------------------------
+    match /deities/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /stories/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /epicHeroes/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /temples/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /rituals/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /festivals/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /panchang/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /products/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /shops/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /challenges/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /plans/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    match /contests/{docId} { allow get, list: if true; allow write: if isSuperAdmin(); }
+    
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 User Profiles & Private Subcollections
+    // ---------------------------------------------------------------------------------------------
+    match /users/{userId} {
+      allow get, list: if true;
+      // Owners/super admin have full control. Allow signed-in users to update follower/following counters.
+      allow create, delete: if isOwner(userId) || isSuperAdmin();
+      allow update: if isOwner(userId) || isSuperAdmin() || (
+        isSignedIn() && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'updatedAt']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount', 'updatedAt']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount', 'updatedAt'])
+        )
+      );
+
+      // Social Graph
+      match /followers/{followerId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.auth.uid == followerId;
+        allow delete: if isOwner(userId) || isOwner(followerId);
+      }
+      match /following/{followedId} {
+        allow get, list: if true;
+        allow create, delete: if isOwner(userId);
+      }
+      
+      // All other user subcollections are private to the owner
+      match /cart/{docId} { allow read, write: if isOwner(userId); }
+      match /subscriptions/{docId} { allow read, write: if isOwner(userId); }
+      match /preferences/{docId} { allow read, write: if isOwner(userId); }
+      match /horoscopes/{docId} { allow read, write: if isOwner(userId); }
+      match /badges/{docId} { allow read, write: if isOwner(userId); }
+      match /bookmarks/{docId} { allow read, write: if isOwner(userId); }
+      match /virtualOfferings/{docId} { allow read, write: if isOwner(userId); }
+      match /playlists/{docId} { allow read, write: if isOwner(userId); }
+      match /challenges/{docId} { allow read, write: if isOwner(userId); }
+      match /contestProgress/{docId} { allow read, write: if isOwner(userId); }
+      match /groups/{groupId} { allow read, write: if isOwner(userId); }
+    }
+    
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 User-Generated Content Rules (Collections)
+    // ---------------------------------------------------------------------------------------------
+
+    match /media/{mediaId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      // Allow creators/admins full updates; allow likes/commentsCount updates by any signed-in user
+      allow update, delete: if isCreator(resource.data) || isSuperAdmin() || (
+        isSignedIn() && (
+          // Allow signed-in users to update likes count
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'updatedAt']) ||
+          // Allow signed-in users to update commentsCount
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount', 'updatedAt']) ||
+          // Allow both likes and commentsCount together
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentsCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentsCount', 'updatedAt'])
+        )
+      );
+      
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+      }
+      match /likes/{userId} {
+        allow get: if true;
+        allow create, delete: if isSignedIn(); // any signed-in user can like/unlike
+      }
+    }
+
+    match /posts/{postId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isCreator(resource.data) || isSuperAdmin() || (
+        isSignedIn() && (
+          // Allow signed-in users to update questionResponses (for answering questions)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['questionResponses']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['questionResponses', 'updatedAt']) ||
+          // Allow signed-in users to update surveyResponses (for voting in surveys)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['surveyResponses']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['surveyResponses', 'updatedAt']) ||
+          // Allow signed-in users to update likes count
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'updatedAt']) ||
+          // Allow signed-in users to update commentsCount
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount', 'updatedAt'])
+        )
+      );
+
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+      }
+      match /likes/{userId} {
+        allow get, list: if true;
+        allow create, delete: if isOwner(userId);
+      }
+    }
+
+    match /manifestations/{manifestationId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+      }
+      match /likes/{userId} {
+        allow get, list: if true;
+        allow create, delete: if isOwner(userId);
+      }
+    }
+    
+     match /temples/{templeId} {
+      allow get, list: if true;
+      allow write: if isSuperAdmin(); // Temples are admin-managed
+       match /posts/{postId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+       }
+    }
+
+    match /playlists/{playlistId} {
+      allow get, list: if resource.data.isPublic == true || isCreator(resource.data);
+      allow create: if isSignedIn();
+      allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+    }
+
+    match /channels/{channelId} {
+        allow get, list: if true;
+        allow write: if isOwner(channelId) || isSuperAdmin();
+        match /subscribers/{subscriberId} {
+             allow create, delete: if isOwner(subscriberId);
+             allow get, list: if true;
+        }
+    }
+
+    match /groups/{groupId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+        match /members/{userId} {
+            allow read, write: if isOwner(userId);
+        }
+    }
+
+    match /contests/{contestId}/chants/{chantId} {
+        allow create: if isSignedIn();
+        allow read: if true;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 Financial & Seva Rules
+    // ---------------------------------------------------------------------------------------------
+    
+     match /temple_renovation_requests/{reqId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+    }
+
+    match /temple_maintenance_funds/{fundId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isCreator(resource.data) || isSuperAdmin();
+        match /donations/{donationId} {
+          allow create: if isSignedIn();
+          allow read: if isOwner(resource.data.userId) || isCreator(get(/databases/$(database)/documents/temple_maintenance_funds/$(fundId)).data) || isSuperAdmin();
+        }
+    }
+
+     match /orders/{orderId} {
+      allow get: if isOwner(resource.data.userId) || isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow create: if isSignedIn();
+      allow update: if isSuperAdmin();
+    }
+
+     match /transactions/{transactionId} {
+        allow get: if isOwner(resource.data.userId) || isSuperAdmin();
+        allow list: if isSuperAdmin();
+        allow create: if isSignedIn();
+        allow update: if isSuperAdmin();
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 Notifications
+    // ---------------------------------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // 🔹 SAMUHIKAA - Collective Chanting Events
+    // ---------------------------------------------------------------------------------------------
+    match /samuhikaa_events/{eventId} {
+        // Events are readable by everyone
+        allow get, list: if true;
+        
+        // Only admins can create/edit/delete events
+        allow create, update, delete: if isSuperAdmin();
+        
+        // Participants subcollection
+        match /participants/{userId} {
+            // Anyone can read participant list (for count display)
+            allow get, list: if true;
+            
+            // Users can only create their own participant document (consent)
+            allow create: if isSignedIn() && isOwner(userId);
+            
+            // Users can only delete their own participation
+            allow delete: if isSignedIn() && isOwner(userId);
+            
+            // No updates allowed (consent is immutable once given)
+            allow update: if false;
+        }
+    }
+  }
+}

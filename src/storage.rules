@@ -1,0 +1,78 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Rule for media uploads (videos, audio, etc.)
+    // Allows a user to write to a path corresponding to their user ID.
+    // Updated to support nested HLS directories
+    match /media/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Explicit rule for HLS files in media
+    // HLS files are stored at: media/{userId}/hls/{videoId}/master.m3u8
+    // and media/{userId}/hls/{videoId}/segment*.ts
+    match /media/{userId}/hls/{videoId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Rule for temple renovation request uploads
+    match /renovation_requests/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Secure rule for user profile images.
+    match /users/{userId}/profileImage/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Secure rule for general content images (deities, stories, etc.)
+    // This allows any authenticated user (including admins using the forms) to upload.
+    match /content-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Secure rule for product images in the marketplace.
+    match /product-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Secure rule for contest images
+    // Allows any authenticated user to upload, which is necessary for the admin forms.
+    match /contests/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Rule for user posts (videos, images, etc.)
+    // Allows public read access for feed posts, authenticated users can upload
+    // Includes HLS streaming files (master.m3u8 and .ts segments)
+    // HLS files are stored at: posts/{userId}/hls/{videoId}/master.m3u8
+    // and posts/{userId}/hls/{videoId}/segment*.ts
+    match /posts/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Explicit rule for HLS files in posts (for clarity, though covered by above rule)
+    // This ensures master.m3u8 and .ts segment files are accessible
+    match /posts/{userId}/hls/{videoId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default rule: Deny all other read/write operations to prevent unauthorized access.
+    // This is a security best practice.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

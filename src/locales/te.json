@@ -1,0 +1,28 @@
+
+{
+  "sidebar": {
+    "home": "హోమ్",
+    "deities": "దేవతలు",
+    "stories": "కథలు",
+    "characters": "పాత్రలు",
+    "temples": "గుడులు & యాత్రలు",
+    "rituals": "అర్చనలు",
+    "panchang": "రోజువారీ పంచాంగం",
+    "festivals": "పండుగలు & ఈవెంట్స్",
+    "forum": "ఫోరం & ప్రశ్నలు",
+    "channels": "చానల్స్",
+    "media": "మాధ్యమం",
+    "shop": "షాప్",
+    "upload": "అప్‌లోడ్",
+    "settings": "సెట్టింగ్స్"
+  },
+  "topnav": {
+    "search_placeholder": "గుడులు, దేవతలు, కథలు, అర్చనలు వెతకండి...",
+    "notifications": "నోటిఫికేషన్స్",
+    "profile": "ప్రొఫైల్"
+  },
+  "header": {
+    "select_language": "భాషను ఎంచుకోండి",
+    "logout": "లాగ్ అవుట్"
+  }
+}

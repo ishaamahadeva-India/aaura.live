@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "aaura-super-app",
+    "staging": "studio-9632556640-bd58d"
+  },
+  "targets": {},
+  "etags": {}
+}

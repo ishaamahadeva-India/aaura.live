@@ -1,0 +1,1396 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the aaura app.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (Firebase Auth UID)."
+        },
+        "username": {
+            "type": "string",
+            "description": "The user's unique, public-facing username."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "mobile": {
+          "type": "string",
+          "description": "User's mobile phone number."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL for the user's profile picture.",
+          "format": "uri"
+        },
+        "zodiacSign": {
+          "type": "string",
+          "description": "User's zodiac sign for horoscope generation."
+        },
+        "birthDate": {
+          "type": "string",
+          "description": "User's birth date.",
+          "format": "date"
+        },
+        "placeOfBirth": {
+            "type": "string",
+            "description": "User's place of birth."
+        },
+        "timeOfBirth": {
+            "type": "string",
+            "description": "User's time of birth.",
+            "format": "time"
+        },
+        "creationTimestamp": {
+          "type": "string",
+          "description": "Timestamp of user account creation.",
+          "format": "date-time"
+        },
+        "profileComplete": {
+            "type": "boolean",
+            "description": "Flag to indicate if the user has completed their profile."
+        },
+        "isSuperAdmin": {
+            "type": "boolean",
+            "description": "Flag to indicate if the user has super administrator privileges."
+        },
+        "followerCount": {
+          "type": "number",
+          "description": "The number of users following this user."
+        },
+        "followingCount": {
+          "type": "number",
+          "description": "The number of users this user is following."
+        },
+        "welcomeMessage": {
+            "type": "string",
+            "description": "A personalized welcome message for new users."
+        },
+        "templesVisited": {
+          "type": "array",
+          "description": "A list of temple slugs the user has visited.",
+          "items": { "type": "string" }
+        },
+        "templesPlanning": {
+          "type": "array",
+          "description": "A list of temple slugs the user is planning to visit.",
+          "items": { "type": "string" }
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "Follow": {
+        "title": "Follow",
+        "type": "object",
+        "description": "Represents a follow relationship between two users. The document ID is the ID of the user being followed/follower.",
+        "properties": {
+            "userId": { "type": "string", "description": "ID of the user." },
+            "followedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the follow occurred." }
+        },
+        "required": ["userId", "followedAt"]
+    },
+    "Subscription": {
+        "title": "Subscription",
+        "type": "object",
+        "description": "Represents a subscription to a channel.",
+        "properties": {
+            "channelId": { "type": "string", "description": "ID of the channel." },
+            "subscribedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the subscription occurred." }
+        },
+        "required": ["channelId", "subscribedAt"]
+    },
+    "Preference": {
+      "title": "Preference",
+      "type": "object",
+      "description": "Stores user-specific preferences.",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "The user's preferred language code (e.g., 'en', 'hi')."
+        },
+        "favoriteDeities": {
+            "type": "array",
+            "description": "A list of favorite deity slugs for content personalization.",
+            "items": { "type": "string" }
+        }
+      }
+    },
+    "Badge": {
+        "title": "Badge",
+        "type": "object",
+        "description": "Represents a gamification badge awarded to a user.",
+        "properties": {
+            "id": { "type": "string", "description": "Unique ID for the badge (e.g., 'spiritual-seeker')." },
+            "name": { "type": "string", "description": "Display name of the badge." },
+            "description": { "type": "string", "description": "What the user did to earn the badge." },
+            "awardedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the badge was awarded." }
+        },
+        "required": ["id", "name", "awardedAt"]
+    },
+    "Challenge": {
+        "title": "Challenge",
+        "type": "object",
+        "description": "Represents a community challenge.",
+        "properties": {
+            "id": { "type": "string" },
+            "title_en": { "type": "string" },
+            "title_hi": { "type": "string" },
+            "description_en": { "type": "string" },
+            "description_hi": { "type": "string" },
+            "durationDays": { "type": "number" },
+            "badgeId": { "type": "string", "description": "ID of the badge awarded upon completion." },
+            "tasks": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "day": { "type": "number" },
+                        "title": { "type": "string" },
+                        "taskType": { "type": "string", "enum": ["read-story", "watch-media", "recite-mantra"] },
+                        "contentId": { "type": "string", "description": "ID of the story, media, or mantra." }
+                    }
+                }
+            }
+        },
+        "required": ["id", "title_en", "durationDays"]
+    },
+    "UserChallengeProgress": {
+        "title": "User Challenge Progress",
+        "type": "object",
+        "description": "Tracks a user's progress in a challenge.",
+        "properties": {
+            "challengeId": { "type": "string" },
+            "startedAt": { "type": "string", "format": "date-time" },
+            "completedTasks": { "type": "array", "items": { "type": "number" }, "description": "Array of completed day numbers." },
+            "isCompleted": { "type": "boolean" },
+            "completedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["challengeId", "startedAt", "isCompleted"]
+    },
+     "Contest": {
+      "title": "Contest",
+      "type": "object",
+      "description": "Represents a global chanting contest.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" },
+        "mantra": { "type": "string", "description": "The exact text to be chanted." },
+        "goal": { "type": "number" },
+        "totalChants": { "type": "number", "description": "The current number of total chants." },
+        "status": { "type": "string", "enum": ["active", "inactive", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "mantra", "totalChants", "status", "createdAt"]
+    },
+    "UserContestProgress": {
+      "title": "User Contest Progress",
+      "type": "object",
+      "description": "Tracks a user's contribution to a specific contest.",
+      "properties": {
+        "chants": { "type": "number" },
+        "lastChantedAt": { "type": "string", "format": "date-time" },
+        "displayName": { "type": "string" }
+      },
+      "required": ["chants", "lastChantedAt", "displayName"]
+    },
+    "Media": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Media",
+      "type": "object",
+      "description": "Represents a media item on the platform, such as a video, bhajan, podcast, or pravachan.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the media item."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User (creator) who uploaded the media."
+        },
+        "title_en": { "type": "string", "description": "Title of the media in English." },
+        "title_hi": { "type": "string", "description": "Title of the media in Hindi." },
+        "description_en": { "type": "string", "description": "Description of the media in English." },
+        "description_hi": { "type": "string", "description": "Description of the media in Hindi." },
+        "uploadDate": {
+          "type": "string",
+          "description": "Date and time the media was uploaded.",
+          "format": "date-time"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL of the media file in Firebase Storage or YouTube.",
+          "format": "uri"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "URL of the media thumbnail image.",
+          "format": "uri"
+        },
+        "mediaType": {
+          "type": "string",
+          "description": "The type of media.",
+          "enum": ["video", "short", "bhajan", "podcast", "pravachan", "audiobook"]
+        },
+        "duration": {
+            "type": "number",
+            "description": "Duration of the media in seconds."
+        },
+        "language": {
+            "type": "string",
+            "description": "Original language of the media content."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Keywords for search and discovery.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+            "type": "string",
+            "description": "Moderation status of the media.",
+            "enum": ["pending", "approved", "rejected"]
+        },
+        "views": {
+            "type": "number",
+            "description": "Number of times the media has been viewed."
+        },
+        "likes": {
+            "type": "number",
+            "description": "Number of likes the media has received."
+        },
+        "popularity": {
+          "type": "number",
+          "description": "A score calculated for trending feeds."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title_en",
+        "uploadDate",
+        "mediaUrl",
+        "mediaType",
+        "status"
+      ]
+    },
+    "Playlist": {
+      "title": "Playlist",
+      "type": "object",
+      "description": "A playlist of spiritual content.",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "creatorId": { "type": "string", "description": "Reference to the User who created the playlist." },
+        "category": { "type": "string", "enum": ["Deities", "Stories", "Rituals", "Festivals", "Peace", "Devotion"] },
+        "isPublic": { "type": "boolean" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contentType": { "type": "string", "description": "e.g., 'mantra', 'story', 'ritual'" },
+              "contentId": { "type": "string" },
+              "order": { "type": "number" }
+            },
+            "required": ["contentType", "contentId", "order"]
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "likesCount": { "type": "number" },
+        "viewCount": { "type": "number" }
+      },
+      "required": ["title", "creatorId", "category", "isPublic", "items", "createdAt", "updatedAt"]
+    },
+    "Channel": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Channel",
+      "type": "object",
+      "description": "Represents a creator's channel on the platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the channel (typically the same as the userId)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns the channel."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the channel."
+        },
+        "description_en": { "type": "string", "description": "Description of the channel content in English." },
+        "description_hi": { "type": "string", "description": "Description of the channel content in Hindi." },
+        "creationDate": {
+          "type": "string",
+          "description": "Date the channel was created.",
+          "format": "date-time"
+        },
+        "subscriberCount": {
+          "type": "number",
+          "description": "Number of subscribers to the channel."
+        },
+        "totalViews": {
+            "type": "number",
+            "description": "Sum of all views on the creator's media."
+        },
+        "totalLikes": {
+            "type": "number",
+            "description": "Sum of all likes on the creator's media."
+        },
+        "featuredPlaylists": {
+            "type": "array",
+            "description": "An array of playlist IDs featured on the channel page.",
+            "items": { "type": "string" }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "creationDate"
+      ]
+    },
+    "Horoscope": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Horoscope",
+      "type": "object",
+      "description": "Represents a daily horoscope generated for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the horoscope."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User for whom the horoscope is generated."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date the horoscope is for.",
+          "format": "date"
+        },
+        "zodiacSign": {
+          "type": "string",
+          "description": "The zodiac sign of the user."
+        },
+        "text_en": { "type": "string", "description": "Horoscope text in English." },
+        "text_hi": { "type": "string", "description": "Horoscope text in Hindi." }
+      },
+      "required": [
+        "id",
+        "userId",
+        "date",
+        "zodiacSign",
+        "text_en"
+      ]
+    },
+    "Deity": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Deity",
+      "type": "object",
+      "description": "Represents a deity in the Hindu pantheon.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the deity."
+        },
+        "name_en": { "type": "string", "description": "Name of the deity in English." },
+        "name_hi": { "type": "string", "description": "Name of the deity in Hindi." },
+        "description_en": { "type": "string", "description": "Description in English." },
+        "description_hi": { "type": "string", "description": "Description in Hindi." },
+        "status": {
+            "type": "string",
+            "description": "The publication status of the content.",
+            "enum": ["unclaimed", "published", "archived"]
+        },
+        "images": {
+          "type": "array",
+          "description": "A list of image URLs for the deity.",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "mantras": {
+          "type": "array",
+          "description": "A list of mantras associated with the deity.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sanskrit": {"type": "string"},
+              "translation_en": {"type": "string"},
+              "translation_hi": {"type": "string"}
+            }
+          }
+        },
+        "stotras": {
+          "type": "array",
+          "description": "A list of stotras (hymns) for the deity.",
+           "items": {
+            "type": "object",
+            "properties": {
+              "title_en": {"type": "string"},
+              "title_hi": {"type": "string"},
+              "sanskrit": {"type": "string"},
+              "translation_en": {"type": "string"},
+              "translation_hi": {"type": "string"}
+            }
+          }
+        }
+      },
+      "required": ["id", "name_en", "status"]
+    },
+    "Shop": {
+      "title": "Shop",
+      "type": "object",
+      "description": "Represents a vendor's shop in the marketplace.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the shop."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "ID of the user who owns the shop."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the shop."
+        },
+        "description_en": { "type": "string", "description": "Description of the shop in English." },
+        "description_hi": { "type": "string", "description": "Description of the shop in Hindi." }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "name"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product in the marketplace.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
+        "shopId": {
+            "type": "string",
+            "description": "ID of the shop that sells this product."
+        },
+        "name_en": { "type": "string", "description": "Name of the product in English." },
+        "name_hi": { "type": "string", "description": "Name of the product in Hindi." },
+        "description_en": { "type": "string", "description": "Description of the product in English." },
+        "description_hi": { "type": "string", "description": "Description of the product in Hindi." },
+        "price": {
+          "type": "number",
+          "description": "The final price of the product after any discounts."
+        },
+        "originalPrice": {
+          "type": "number",
+          "description": "The original price of the product, before any discounts."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the product image.",
+          "format": "uri"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category like 'Idols', 'Incense', 'Books'."
+        }
+      },
+      "required": [
+        "id",
+        "shopId",
+        "name_en",
+        "price",
+        "imageUrl"
+      ]
+    },
+    "CartItem": {
+      "title": "Cart Item",
+      "type": "object",
+      "description": "Represents a single item within a user's shopping cart.",
+      "properties": {
+        "productId": { "type": "string", "description": "The ID of the product." },
+        "quantity": { "type": "number", "description": "The number of units of this product." },
+        "addedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the item was added." },
+        "price": { "type": "number", "description": "The price per unit at the time of adding to cart." },
+        "name_en": { "type": "string", "description": "The English name of the product." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "The image URL of the product." }
+      },
+      "required": ["productId", "quantity", "price", "name_en", "imageUrl", "addedAt"]
+    },
+    "Order": {
+        "title": "Order",
+        "type": "object",
+        "description": "Represents a completed customer order.",
+        "properties": {
+            "id": { "type": "string", "description": "Unique identifier for the order." },
+            "userId": { "type": "string", "description": "The ID of the user who placed the order." },
+            "shopId": { "type": "string", "description": "The ID of the shop fulfilling the order." },
+            "items": { "type": "array", "items": { "$ref": "#/entities/CartItem" } },
+            "totalAmount": { "type": "number", "description": "The total amount paid for the order." },
+            "status": { "type": "string", "enum": ["created", "paid", "shipped", "delivered", "cancelled"] },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" },
+            "paymentDetails": {
+                "type": "object",
+                "properties": {
+                    "razorpay_order_id": { "type": "string" },
+                    "razorpay_payment_id": { "type": "string" },
+                    "razorpay_signature": { "type": "string" }
+                }
+            }
+        },
+        "required": ["id", "userId", "items", "totalAmount", "status", "createdAt"]
+    },
+    "Temple": {
+      "title": "Temple",
+      "type": "object",
+      "description": "Represents a temple or pilgrimage site.",
+      "properties": {
+        "id": { "type": "string" },
+        "name_en": { "type": "string", "description": "Name of the temple in English." },
+        "name_hi": { "type": "string", "description": "Name of the temple in Hindi." },
+        "status": {
+            "type": "string",
+            "description": "The publication status of the content.",
+            "enum": ["unclaimed", "published", "archived"]
+        },
+        "officialWebsite": { "type": "string", "format": "uri", "description": "The official website of the temple." },
+        "deity": {
+          "type": "object",
+          "properties": {
+            "name_en": { "type": "string" },
+            "name_hi": { "type": "string" },
+            "significance_en": { "type": "string" },
+            "significance_hi": { "type": "string" }
+          }
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" },
+            "city": { "type": "string" },
+            "district": { "type": "string" },
+            "state": { "type": "string" },
+            "pincode": { "type": "string" },
+            "geo": {
+              "type": "object",
+              "properties": {
+                "lat": { "type": "number" },
+                "lng": { "type": "number" }
+              }
+            }
+          }
+        },
+        "importance": {
+          "type": "object",
+          "properties": {
+            "historical_en": { "type": "string" },
+            "historical_hi": { "type": "string" },
+            "mythological_en": { "type": "string" },
+            "mythological_hi": { "type": "string" }
+          }
+        },
+        "media": {
+          "type": "object",
+          "properties": {
+            "images": {
+              "type": "array",
+              "items": { "type": "string", "format": "uri" }
+            },
+            "videos": {
+              "type": "array",
+              "items": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "visitingInfo": {
+          "type": "object",
+          "properties": {
+            "timings_en": { "type": "string" },
+            "timings_hi": { "type": "string" },
+            "festivals_en": { "type": "string" },
+            "festivals_hi": { "type": "string" },
+            "poojaGuidelines_en": { "type": "string" },
+            "poojaGuidelines_hi": { "type": "string" },
+            "dressCode_en": { "type": "string" },
+            "dressCode_hi": { "type": "string" }
+          }
+        },
+        "nearbyInfo": {
+          "type": "object",
+          "properties": {
+            "placesToVisit": {
+              "type": "array",
+              "items": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" } } }
+            },
+            "accommodation": {
+              "type": "array",
+              "items": { "type": "object", "properties": { "name": { "type": "string" }, "phone": { "type": "string" } } }
+            },
+            "food": {
+              "type": "array",
+              "items": { "type": "object", "properties": { "name": { "type": "string" }, "phone": { "type": "string" } } }
+            },
+            "transport": {
+              "type": "array",
+              "items": { "type": "object", "properties": { "name": { "type": "string" }, "phone": { "type": "string" } } }
+            },
+            "guides": {
+              "type": "array",
+              "items": { "type": "object", "properties": { "name": { "type": "string" }, "phone": { "type": "string" } } }
+            }
+          }
+        }
+      },
+      "required": ["id", "name_en", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "type": "object",
+      "description": "A user review for a temple.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "templeId": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "templeId", "rating", "comment", "timestamp"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "type": "object",
+      "description": "Represents a user bookmarking a temple.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "templeId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "templeId", "timestamp"]
+    },
+    "VirtualOffering": {
+        "title": "Virtual Offering",
+        "type": "object",
+        "description": "Represents a user's interaction in the virtual pooja room.",
+        "properties": {
+            "userId": { "type": "string" },
+            "interaction": { "type": "string", "enum": ["ring-bell", "offer-flower", "light-diya", "offer-aarti"] },
+            "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["userId", "interaction", "timestamp"]
+    },
+    "Story": {
+      "title": "Story",
+      "type": "object",
+      "description": "Represents a mythological story, potentially as an episodic series.",
+      "properties": {
+        "id": { "type": "string" },
+        "title_en": { "type": "string" },
+        "title_hi": { "type": "string" },
+        "summary_en": { "type": "string" },
+        "summary_hi": { "type": "string" },
+        "status": {
+            "type": "string",
+            "description": "The publication status of the content.",
+            "enum": ["unclaimed", "published", "archived"]
+        },
+        "image": { "type": "string", "format": "uri" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "relatedCharacters": { "type": "array", "items": { "type": "string" } },
+        "relatedTemples": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "episodes": {
+          "type": "array",
+          "description": "A series of video episodes for the story.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "episodeNumber": { "type": "number" },
+              "title_en": { "type": "string" },
+              "title_hi": { "type": "string" },
+              "description_en": { "type": "string" },
+              "description_hi": { "type": "string" },
+              "videoId": { "type": "string", "description": "Identifier for the video (e.g., YouTube ID)." },
+              "thumbnailUrl": { "type": "string", "format": "uri" },
+              "duration": { "type": "number", "description": "Duration in seconds." }
+            }
+          }
+        }
+      },
+      "required": ["id", "title_en", "status", "createdAt", "updatedAt"]
+    },
+    "EpicHero": {
+      "title": "Epic Hero",
+      "type": "object",
+      "description": "Represents a mythological character, hero, or significant figure from epics like the Ramayana or Mahabharata.",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the hero." },
+        "epicAssociation": { "type": "array", "items": { "type": "string" }, "description": "Which epic(s) the hero is associated with." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL for the hero's image." },
+        "description": { "type": "string", "description": "A brief, one-sentence summary of the hero." },
+        "quote": {
+          "type": "object",
+          "properties": {
+              "text": { "type": "string" },
+              "source": { "type": "string" }
+          }
+        },
+        "modernRelevance": { "type": "string" },
+        "background": {
+          "type": "object",
+          "properties": {
+            "birth": { "type": "string" },
+            "earlyLife": { "type": "string" },
+            "family": {
+              "type": "object",
+              "properties": {
+                "parents": { "type": "array", "items": { "type": "string" } },
+                "siblings": { "type": "array", "items": { "type": "string" } },
+                "spouses": { "type": "array", "items": { "type": "string" } },
+                "children": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "prominence": { "type": "string", "description": "The hero's primary role and significance in their epic." },
+        "qualities": { "type": "array", "items": { "type": "string" }, "description": "Key virtues and characteristics of the hero." },
+        "achievements": { "type": "array", "items": { "type": "string" }, "description": "Major accomplishments and feats." },
+        "mistakes": { "type": "array", "items": { "type": "string" }, "description": "Notable errors in judgment or flaws." },
+        "learningsForChildren": { "type": "array", "items": { "type": "string" }, "description": "Moral lessons derived from the hero's life, simplified for children." },
+        "relatedContent": {
+          "type": "object",
+          "properties": {
+            "sacredTales": { "type": "array", "items": { "type": "string" } },
+            "deities": { "type": "array", "items": { "type": "string" } },
+            "rituals": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "aiGeneratedInsights": { "type": "string", "description": "Personalized insights generated by AI." },
+        "popularity": { "type": "number", "description": "Score for feed ranking." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "epicAssociation", "description"]
+    },
+    "Ritual": {
+      "title": "Ritual",
+      "type": "object",
+      "description": "Represents a ritual or pooja.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "object", "properties": { "en": { "type": "string" } } },
+        "deity": { "type": "object", "properties": { "en": { "type": "string" } } },
+        "description": { "type": "object", "properties": { "en": { "type": "string" } } },
+        "procedure": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "itemsRequired": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "auspiciousTime": { "type": "object", "properties": { "en": { "type": "string" } } },
+        "image": { "type": "object", "properties": { "url": { "type": "string", "format": "uri" }, "hint": { "type": "string" } } },
+        "significance": { "type": "object", "properties": { "en": { "type": "string" } } },
+        "benefits": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "variations": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "commonMistakes": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "reflections": { "type": "object", "properties": { "en": { "type": "array", "items": { "type": "string" } } } },
+        "difficulty": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"] },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "popularity": { "type": "number" }
+      },
+      "required": ["id", "name", "procedure"]
+    },
+    "Panchang": {
+      "title": "Panchang",
+      "type": "object",
+      "description": "Represents daily panchang data.",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "tithi": { "type": "string" },
+        "nakshatra": { "type": "string" },
+        "rahukalam": { "type": "string" },
+        "yamaGandam": { "type": "string" },
+        "sunrise": { "type": "string" },
+        "sunset": { "type": "string" },
+        "festival_en": { "type": "array", "items": { "type": "string" } },
+        "festival_hi": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["date"]
+    },
+    "Festival": {
+      "title": "Festival",
+      "type": "object",
+      "description": "Represents a cultural festival.",
+      "properties": {
+        "id": { "type": "string" },
+        "name_en": { "type": "string" },
+        "name_hi": { "type": "string" },
+        "description_en": { "type": "string" },
+        "description_hi": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "duration": { "type": "string" },
+        "significance_en": { "type": "string" },
+        "significance_hi": { "type": "string" },
+        "rituals": { "type": "array", "items": { "type": "string" } },
+        "associatedDeities": { "type": "array", "items": { "type": "string" } },
+        "image": { "type": "string", "format": "uri" },
+        "relatedProducts": { "type": "array", "items": { "type": "string" } },
+        "recommendedPlaylist": {
+            "type": "object",
+            "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" }
+            }
+        }
+      },
+      "required": ["id", "name_en", "description_en", "date", "significance_en"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "Represents a community group.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "coverImageUrl": { "type": "string", "format": "uri" },
+        "topicType": { "type": "string", "description": "e.g., 'deity', 'temple', 'general'" },
+        "topicId": { "type": "string", "description": "Slug of the related topic" },
+        "memberCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Represents a post in a community group.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contextId": { "type": "string", "description": "ID of the group, temple, or channel the post belongs to." },
+        "contextType": { "type": "string", "enum": ["group", "temple", "channel"], "description": "The type of context the post belongs to." },
+        "authorId": { "type": "string" },
+        "content": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "commentsCount": { "type": "number" },
+        "status": { "type": "string", "enum": ["published", "pending", "archived"] }
+      },
+      "required": ["contextId", "contextType", "authorId", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Represents a comment on a piece of content (e.g., post, video).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contentId": { "type": "string", "description": "The ID of the content being commented on." },
+        "contentType": { "type": "string", "description": "The type of content (e.g., 'post', 'media', 'manifestation')." },
+        "authorId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["contentId", "contentType", "authorId", "text", "createdAt"]
+    },
+    "Manifestation": {
+      "title": "Manifestation Post",
+      "description": "Represents a user-submitted manifestation technique or story.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "technique": { "type": "string", "description": "The description of the manifestation technique." },
+        "results": { "type": "string", "description": "The optional results or story from the practice." },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" }
+      },
+      "required": ["id", "userId", "title", "technique", "createdAt"]
+    },
+    "Plan": {
+        "title": "Monetization Plan",
+        "type": "object",
+        "description": "Represents a subscription or donation plan.",
+        "properties": {
+            "id": { "type": "string", "description": "Unique ID for the plan (e.g., 'sub_annual_49')." },
+            "name": { "type": "string" },
+            "amount": { "type": "number" },
+            "currency": { "type": "string" },
+            "period": { "type": "string", "enum": ["year", "month", "one-time"] },
+            "description": { "type": "string" }
+        },
+        "required": ["id", "name", "amount", "currency"]
+    },
+    "Transaction": {
+        "title": "Transaction",
+        "type": "object",
+        "description": "Represents a pending or completed payment for a donation or subscription.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string" },
+            "items": { "type": "array", "description": "An array of purchased plans/donations", "items": { "type": "object", "properties": { "planId": { "type": "string" }, "name": { "type": "string" }, "quantity": { "type": "number" }, "amount": { "type": "number" } } } },
+            "totalAmount": { "type": "number" },
+            "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "paymentGatewayId": { "type": "string", "description": "ID from the payment gateway (e.g., Razorpay Order ID)." }
+        },
+        "required": ["id", "userId", "items", "totalAmount", "status"]
+    },
+    "TempleRenovationRequest": {
+        "title": "Temple Renovation Request",
+        "type": "object",
+        "description": "A user-submitted proposal for renovating a temple.",
+        "properties": {
+            "id": { "type": "string" },
+            "templeName": { "type": "string" },
+            "location": { "type": "string" },
+            "description": { "type": "string" },
+            "totalGoal": { "type": "number", "description": "The total funding goal for the project." },
+            "progressStatus": { "type": "string", "enum": ["planning", "in-progress", "completed"] },
+            "proposedStartDate": { "type": "string", "format": "date" },
+            "proposedCompletionDate": { "type": "string", "format": "date" },
+            "hasSocietyRegistration": { "type": "boolean" },
+            "hasApprovals": { "type": "boolean" },
+            "imageUrl": { "type": "string", "format": "uri" },
+            "videoUrl": { "type": "string", "format": "uri" },
+            "createdBy": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": ["pending", "approved", "rejected"] }
+        },
+        "required": ["templeName", "location", "description", "createdBy"]
+    },
+    "TempleMaintenanceFund": {
+        "title": "Temple Maintenance Fund",
+        "type": "object",
+        "description": "A fund set up for the monthly maintenance of a temple.",
+        "properties": {
+            "id": { "type": "string" },
+            "templeId": { "type": "string", "description": "ID of the temple this fund is for." },
+            "monthlyTarget": { "type": "number" },
+            "bankAccountDetails": { "type": "string", "description": "Bank details for direct donations." },
+            "contactPerson": { "type": "string" },
+            "phone": { "type": "string" },
+            "description": { "type": "string" },
+            "createdBy": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "totalCollected": { "type": "number" }
+        },
+        "required": ["templeId", "monthlyTarget", "createdBy"]
+    },
+    "MaintenanceDonation": {
+        "title": "Maintenance Donation",
+        "type": "object",
+        "description": "A record of a single donation to a maintenance fund.",
+        "properties": {
+            "userId": { "type": "string" },
+            "amount": { "type": "number" },
+            "date": { "type": "string", "format": "date-time" }
+        },
+        "required": ["userId", "amount", "date"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": { "$ref": "#/entities/User" },
+          "description": "Stores user profiles."
+        }
+      },
+       {
+        "path": "/users/{userId}/contestProgress/{contestId}",
+        "definition": {
+          "entityName": "UserContestProgress",
+          "schema": { "$ref": "#/entities/UserContestProgress" },
+          "description": "Tracks a user's progress in a specific contest."
+        }
+      },
+      {
+        "path": "/users/{userId}/followers/{followerId}",
+        "definition": {
+            "entityName": "Follow",
+            "schema": { "$ref": "#/entities/Follow" },
+            "description": "A subcollection storing the users who are following this user. The document ID is the UID of the follower."
+        }
+      },
+      {
+        "path": "/users/{userId}/following/{followedId}",
+        "definition": {
+            "entityName": "Follow",
+            "schema": { "$ref": "#/entities/Follow" },
+            "description": "A subcollection storing the users this user is following. The document ID is the UID of the user being followed."
+        }
+      },
+       {
+        "path": "/users/{userId}/subscriptions/{channelId}",
+        "definition": {
+            "entityName": "Subscription",
+            "schema": { "$ref": "#/entities/Subscription" },
+            "description": "A subcollection storing the channels this user is subscribed to."
+        }
+      },
+      {
+        "path": "/users/{userId}/preferences/default",
+        "definition": {
+          "entityName": "Preference",
+          "schema": { "$ref": "#/entities/Preference" },
+          "description": "Stores user preferences, using a singleton document 'default'."
+        }
+      },
+       {
+        "path": "/users/{userId}/badges/{badgeId}",
+        "definition": {
+          "entityName": "Badge",
+          "schema": { "$ref": "#/entities/Badge" },
+          "description": "Stores gamification badges awarded to the user."
+        }
+      },
+      {
+        "path": "/users/{userId}/bookmarks/{bookmarkId}",
+        "definition": {
+          "entityName": "Bookmark",
+          "schema": { "$ref": "#/entities/Bookmark" },
+          "description": "Stores user bookmarks for temples."
+        }
+      },
+       {
+        "path": "/users/{userId}/virtualOfferings/{offeringId}",
+        "definition": {
+          "entityName": "VirtualOffering",
+          "schema": { "$ref": "#/entities/VirtualOffering" },
+          "description": "Stores a user's interactions in the virtual pooja room."
+        }
+      },
+      {
+        "path": "/users/{userId}/cart/{productId}",
+        "definition": {
+            "entityName": "CartItem",
+            "schema": { "$ref": "#/entities/CartItem" },
+            "description": "Stores items in a user's shopping cart."
+        }
+      },
+      {
+        "path": "/users/{userId}/playlists/{playlistId}",
+        "definition": {
+          "schema": { "type": "object", "properties": { "playlistId": { "type": "string" }, "createdAt": { "type": "string", "format": "date-time" } } },
+          "description": "Reference to playlists created by the user."
+        }
+      },
+       {
+        "path": "/users/{userId}/challenges/{challengeId}",
+        "definition": {
+            "entityName": "UserChallengeProgress",
+            "schema": { "$ref": "#/entities/UserChallengeProgress" },
+            "description": "Tracks user progress in community challenges."
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+            "entityName": "Order",
+            "schema": { "$ref": "#/entities/Order" },
+            "description": "Stores all user orders globally for easier admin access."
+        }
+      },
+      {
+        "path": "/media/{mediaId}",
+        "definition": {
+          "entityName": "Media",
+          "schema": { "$ref": "#/entities/Media" },
+          "description": "Stores all media on the platform (videos, audio, etc.)."
+        }
+      },
+      {
+        "path": "/media/{mediaId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": { "$ref": "#/entities/Comment" },
+          "description": "Stores comments for a specific media item."
+        }
+      },
+       {
+        "path": "/media/{mediaId}/likes/{userId}",
+        "definition": {
+            "schema": { "type": "object", "properties": { "userId": { "type": "string" } } },
+            "description": "Stores likes for a specific media item. Document ID is the user's UID."
+        }
+       },
+      {
+        "path": "/channels/{channelId}",
+        "definition": {
+          "entityName": "Channel",
+          "schema": { "$ref": "#/entities/Channel" },
+          "description": "Stores all channels on the platform."
+        }
+      },
+      {
+        "path": "/channels/{channelId}/subscribers/{userId}",
+        "definition": {
+            "schema": { "type": "object", "properties": { "userId": { "type": "string" } } },
+            "description": "Subcollection to track subscribers of a channel."
+        }
+      },
+      {
+        "path": "/playlists/{playlistId}",
+        "definition": {
+          "entityName": "Playlist",
+          "schema": { "$ref": "#/entities/Playlist" },
+          "description": "Stores all public or user-created playlists."
+        }
+      },
+      {
+        "path": "/users/{userId}/horoscopes/{horoscopeId}",
+        "definition": {
+          "entityName": "Horoscope",
+          "schema": { "$ref": "#/entities/Horoscope" },
+          "description": "Stores horoscopes generated for users."
+        }
+      },
+      {
+        "path": "/deities/{deityId}",
+        "definition": {
+          "entityName": "Deity",
+          "schema": { "$ref": "#/entities/Deity" },
+          "description": "Stores information about Hindu deities."
+        }
+      },
+      {
+        "path": "/shops/{shopId}",
+        "definition": {
+            "entityName": "Shop",
+            "schema": { "$ref": "#/entities/Shop" },
+            "description": "Stores all shops for the marketplace."
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": { "$ref": "#/entities/Product" },
+          "description": "Stores all products for the marketplace."
+        }
+      },
+      {
+        "path": "/temples/{templeId}",
+        "definition": {
+          "entityName": "Temple",
+          "schema": { "$ref": "#/entities/Temple" },
+          "description": "Stores all temple and pilgrimage data."
+        }
+      },
+      {
+        "path": "/temples/{templeId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": { "$ref": "#/entities/Review" },
+          "description": "Stores user reviews for a specific temple."
+        }
+      },
+      {
+        "path": "/temples/{templeId}/posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": { "$ref": "#/entities/Post" },
+          "description": "Stores user posts for a specific temple."
+        }
+      },
+       {
+        "path": "/stories/{storyId}",
+        "definition": {
+          "entityName": "Story",
+          "schema": { "$ref": "#/entities/Story" },
+          "description": "Stores mythological stories."
+        }
+      },
+      {
+        "path": "/epicHeroes/{heroId}",
+        "definition": {
+          "entityName": "EpicHero",
+          "schema": { "$ref": "#/entities/EpicHero" },
+          "description": "Stores mythological heroes and characters."
+        }
+
+      },
+      {
+        "path": "/rituals/{ritualId}",
+        "definition": {
+          "entityName": "Ritual",
+          "schema": { "$ref": "#/entities/Ritual" },
+          "description": "Stores guidelines for various rituals and poojas."
+        }
+      },
+      {
+        "path": "/panchang/{date}",
+        "definition": {
+          "entityName": "Panchang",
+          "schema": { "$ref": "#/entities/Panchang" },
+          "description": "Stores daily panchang data, with the document ID being the date (e.g., '2025-10-05')."
+        }
+      },
+      {
+        "path": "/festivals/{festivalId}",
+        "definition": {
+          "entityName": "Festival",
+          "schema": { "$ref": "#/entities/Festival" },
+          "description": "Stores details about cultural and religious festivals."
+        }
+      },
+      {
+        "path": "/groups/{groupId}",
+        "definition": {
+            "entityName": "Group",
+            "schema": { "$ref": "#/entities/Group" },
+            "description": "Stores community groups."
+        }
+      },
+      {
+        "path": "/groups/{groupId}/members/{userId}",
+        "definition": {
+            "schema": { "type": "object", "properties": { "joinedAt": { "type": "string", "format": "date-time" } } },
+            "description": "Subcollection to track members of a group."
+        }
+      },
+      {
+        "path": "/posts/{postId}",
+        "definition": {
+            "entityName": "Post",
+            "schema": { "$ref": "#/entities/Post" },
+            "description": "Stores posts within a specific group."
+        }
+      },
+      {
+          "path": "/posts/{postId}/comments/{commentId}",
+          "definition": {
+              "entityName": "Comment",
+              "schema": { "$ref": "#/entities/Comment" },
+              "description": "Stores comments for a specific post within a group."
+          }
+      },
+      {
+        "path": "/posts/{postId}/likes/{userId}",
+        "definition": {
+            "schema": { "type": "object", "properties": { "userId": { "type": "string" } } },
+            "description": "Stores likes for a specific forum post within a group. Document ID is the user's UID."
+        }
+       },
+       {
+        "path": "/challenges/{challengeId}",
+        "definition": {
+          "entityName": "Challenge",
+          "schema": { "$ref": "#/entities/Challenge" },
+          "description": "Stores community challenges."
+        }
+      },
+       {
+        "path": "/contests/{contestId}",
+        "definition": {
+          "entityName": "Contest",
+          "schema": { "$ref": "#/entities/Contest" },
+          "description": "Stores global chanting contests."
+        }
+      },
+      {
+        "path": "/manifestations/{manifestationId}",
+        "definition": {
+          "entityName": "Manifestation",
+          "schema": { "$ref": "#/entities/Manifestation" },
+          "description": "Stores user-submitted manifestation techniques and stories."
+        }
+      },
+      {
+        "path": "/manifestations/{manifestationId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": { "$ref": "#/entities/Comment" },
+          "description": "Stores comments on a manifestation post."
+        }
+      },
+      {
+        "path": "/manifestations/{manifestationId}/likes/{userId}",
+        "definition": {
+            "schema": { "type": "object", "properties": { "userId": { "type": "string" } } },
+            "description": "Stores likes for a manifestation post."
+        }
+       },
+       {
+            "path": "/plans/{planId}",
+            "definition": {
+                "entityName": "Plan",
+                "schema": { "$ref": "#/entities/Plan" },
+                "description": "Stores monetization plans for subscriptions and donations."
+            }
+       },
+       {
+            "path": "/transactions/{transactionId}",
+            "definition": {
+                "entityName": "Transaction",
+                "schema": { "$ref": "#/entities/Transaction" },
+                "description": "Logs all payment transactions for donations and subscriptions."
+            }
+       },
+       {
+            "path": "/temple_renovation_requests/{requestId}",
+            "definition": {
+                "entityName": "TempleRenovationRequest",
+                "schema": { "$ref": "#/entities/TempleRenovationRequest" },
+                "description": "Stores user-submitted requests for temple renovation funds."
+            }
+       },
+       {
+            "path": "/temple_maintenance_funds/{fundId}",
+            "definition": {
+                "entityName": "TempleMaintenanceFund",
+                "schema": { "$ref": "#/entities/TempleMaintenanceFund" },
+                "description": "Stores funds for monthly temple maintenance."
+            }
+       },
+       {
+            "path": "/temple_maintenance_funds/{fundId}/donations/{donationId}",
+            "definition": {
+                "entityName": "MaintenanceDonation",
+                "schema": { "$ref": "#/entities/MaintenanceDonation" },
+                "description": "Subcollection to track individual donations to a maintenance fund."
+            }
+       }
+    ],
+    "reasoning": "The data model is designed for a content platform with e-commerce, a temple library, and a community forum. It now includes a robust social graph with followers and following subcollections under each user. This is more efficient for querying social connections than the previous subscription model. All public content (media, posts, etc.) remains in top-level collections, while user-specific data is nested for security and scalability. Likes are now modeled as subcollections on content items, which is a scalable pattern for tracking user interactions. Added a posts subcollection to temples for community discussion."
+  }
+}

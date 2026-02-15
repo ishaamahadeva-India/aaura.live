@@ -1,0 +1,467 @@
+'use client';
+
+import React, { useEffect, useState, useRef, useMemo, useTransition } from 'react';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { getFirebaseClient } from '@/lib/firebase/client';
+import type { FeedItem } from '@/types/feed';
+import { useAuth, useFirestore } from '@/lib/firebase/provider';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { doc, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { CardFooter } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { FlowerIcon } from '@/components/FlowerIcon';
+import { Comments } from '@/components/comments';
+import { MessageCircle, Share2, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import { useActiveVideo } from '@/contexts/ActiveVideoContext';
+import { HLSVideoPlayer } from './HLSVideoPlayer';
+
+interface FeedCardProps {
+  videoUrl?: string;
+  item?: FeedItem;
+  posterUrl?: string;
+  title?: string;
+  onVideoLoaded?: () => void;
+}
+
+const FeedCard: React.FC<FeedCardProps> = ({ videoUrl, item, posterUrl, title, onVideoLoaded }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [poster, setPoster] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState(false);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const [userInteracted, setUserInteracted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastTapRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
+  const srcSetRef = useRef(false); // Track if src has been set (ONCE per instance)
+
+  // Firebase hooks
+  const auth = useAuth();
+  const db = useFirestore();
+  const [user, authLoading] = useAuthState(auth);
+  const { toast } = useToast();
+  const [isLiking, startLikeTransition] = useTransition();
+
+  // Get post ID from item
+  const postId = useMemo(() => {
+    if (!item?.id) return null;
+    const match = item.id.match(/^post-(.+)$/);
+    return match ? match[1] : item.id;
+  }, [item?.id]);
+
+  // Active video context
+  const { activeVideoId, setActiveVideoId, saveVideoState, getVideoState } = useActiveVideo();
+  const isActiveVideo = useMemo(() => {
+    return postId ? activeVideoId === postId : false;
+  }, [activeVideoId, postId]);
+
+  // Firestore references
+  const postRef = useMemo(() => {
+    if (!postId || !db) return null;
+    return doc(db, 'posts', postId);
+  }, [db, postId]);
+
+  const likeRef = useMemo(() => {
+    if (!user || !postId || !db) return null;
+    return doc(db, `posts/${postId}/likes/${user.uid}`);
+  }, [db, postId, user]);
+
+  const [likeDoc, likeLoading] = useDocumentData(likeRef);
+  const [isLiked, setIsLiked] = useState(false);
+  const [optimisticLikes, setOptimisticLikes] = useState(item?.meta?.likes || 0);
+
+  useEffect(() => {
+    setIsLiked(!!likeDoc);
+  }, [likeDoc]);
+
+  // Get video storage path
+  const videoStoragePath = item?.meta?.videoStoragePath;
+  const hlsUrl = item?.hlsUrl || item?.meta?.hlsUrl;
+
+  // SIMPLIFIED: Load video URL ONCE per instance
+  useEffect(() => {
+    // Only load if we haven't set src yet and have storage path
+    if (srcSetRef.current || !videoStoragePath || hlsUrl) {
+      if (hlsUrl) {
+        setLoading(false);
+      }
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadVideoUrl = async () => {
+      try {
+        setLoading(true);
+        const { storage } = getFirebaseClient();
+        const storageRef = ref(storage, videoStoragePath);
+        const url = await getDownloadURL(storageRef);
+        
+        if (isMounted && !srcSetRef.current) {
+          setSrc(url);
+          srcSetRef.current = true;
+          setLoading(false);
+          onVideoLoaded?.();
+        }
+      } catch (err: any) {
+        console.error('FeedCard: Failed to get video URL', err);
+        if (isMounted) {
+          setError(true);
+          setErrorMessage(err?.message || 'Failed to load video');
+          setLoading(false);
+        }
+      }
+    };
+
+    loadVideoUrl();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [videoStoragePath, hlsUrl, onVideoLoaded]);
+
+  // SIMPLIFIED: onError only logs, never modifies src or state
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const video = e.currentTarget;
+    const error = video.error;
+    
+    if (error) {
+      console.error('FeedCard: Video error', {
+        code: error.code,
+        message: error.message,
+        networkState: video.networkState,
+        readyState: video.readyState,
+        src: video.src?.substring(0, 200)
+      });
+    } else {
+      console.warn('FeedCard: Video error event but no error object', {
+        networkState: video.networkState,
+        readyState: video.readyState
+      });
+    }
+    // DO NOT modify src or state - just log
+  };
+
+  // Rest of component (like, share, comments, etc.) remains the same...
+  // [Keep all the existing UI and interaction code]
+
+  // Generate poster from first frame
+  const generatePoster = useRef(false);
+  const generatePosterFromVideo = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || generatePoster.current || poster) return;
+
+    if (video.readyState < 2) return;
+
+    try {
+      generatePoster.current = true;
+      const currentTime = video.currentTime;
+      video.currentTime = 0.1;
+      
+      const captureFrame = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            setPoster(dataUrl);
+            video.currentTime = currentTime;
+          }
+        }
+      };
+
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        captureFrame();
+      } else {
+        const seekHandler = () => {
+          captureFrame();
+          video.removeEventListener('seeked', seekHandler);
+        };
+        video.addEventListener('seeked', seekHandler, { once: true });
+      }
+    } catch (err) {
+      console.error('FeedCard: Error generating poster', err);
+      generatePoster.current = false;
+    }
+  };
+
+  // Handle double tap to like
+  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!postId || !user) return;
+
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      handleLike();
+      setShowLikeAnimation(true);
+      setTimeout(() => setShowLikeAnimation(false), 1000);
+    } else {
+      tapTimeoutRef.current = setTimeout(() => {
+        const video = videoRef.current;
+        if (video) {
+          if (video.paused) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      }, DOUBLE_TAP_DELAY);
+    }
+
+    lastTapRef.current = now;
+  };
+
+  // Handle like
+  const handleLike = () => {
+    if (authLoading) {
+      toast({ variant: "destructive", title: "Loading your account… please try again." });
+      return;
+    }
+    if (!user) {
+      toast({ variant: "destructive", title: "Please log in to like posts." });
+      return;
+    }
+    if (!postRef || !likeRef) {
+      return;
+    }
+
+    const wasLiked = isLiked;
+    startLikeTransition(() => {
+      setIsLiked(!wasLiked);
+      setOptimisticLikes(prev => wasLiked ? prev - 1 : prev + 1);
+
+      const batch = writeBatch(db!);
+      const likeData = { createdAt: serverTimestamp() };
+
+      if (wasLiked) {
+        batch.delete(likeRef!);
+        batch.update(postRef!, { likes: increment(-1) });
+      } else {
+        batch.set(likeRef!, likeData);
+        batch.update(postRef!, { likes: increment(1) });
+      }
+
+      batch.commit().catch((err) => {
+        console.error('FeedCard: Error updating like', err);
+        setIsLiked(wasLiked);
+        setOptimisticLikes(prev => wasLiked ? prev + 1 : prev - 1);
+        toast({ variant: "destructive", title: "Failed to update like. Please try again." });
+      });
+    });
+  };
+
+  // Handle share
+  const handleShare = async () => {
+    if (!postId) return;
+
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+    const shareData = {
+      title: title || 'Check out this post',
+      text: title || 'Check out this post',
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('FeedCard: Share error', err);
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Link copied to clipboard!" });
+      } catch (err) {
+        console.error('FeedCard: Clipboard error', err);
+        toast({ variant: "destructive", title: "Failed to copy link." });
+      }
+    }
+  };
+
+  // Get title
+  const displayTitle = useMemo(() => {
+    if (title) return title;
+    if (!item?.title) return undefined;
+    if (typeof item.title === 'string') return item.title;
+    if (typeof item.title === 'object') {
+      return item.title.en || item.title.te || Object.values(item.title)[0] || undefined;
+    }
+    return undefined;
+  }, [title, item?.title]);
+
+  // Get poster
+  const displayPoster = poster || posterUrl || item?.posterUrl;
+
+  // IntersectionObserver for video visibility
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return;
+
+    intersectionObserverRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting && !video.paused && !isActiveVideo) {
+            video.pause();
+          } else if (entry.isIntersecting && video.paused && !isActiveVideo && !video.ended) {
+            video.play().catch(() => {});
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    intersectionObserverRef.current.observe(video);
+
+    return () => {
+      if (intersectionObserverRef.current) {
+        intersectionObserverRef.current.disconnect();
+      }
+    };
+  }, [src, isActiveVideo]);
+
+  // Video event handlers
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return;
+
+    const handleLoadedData = () => {
+      generatePosterFromVideo();
+    };
+
+    const handlePlay = () => {
+      if (postId) {
+        setActiveVideoId(postId);
+      }
+    };
+
+    const handleEnded = () => {
+      if (postId && activeVideoId === postId) {
+        setActiveVideoId(null);
+      }
+    };
+
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, [src, postId, activeVideoId, setActiveVideoId]);
+
+  if (!item) return null;
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* Video */}
+      {hlsUrl ? (
+        <HLSVideoPlayer
+          hlsUrl={hlsUrl}
+          poster={displayPoster}
+          isActive={isActiveVideo}
+        />
+      ) : (
+        <>
+          {loading && (
+            <div className="w-full aspect-video bg-gray-100 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+          )}
+          {error && (
+            <div className="w-full aspect-video bg-gray-100 flex items-center justify-center">
+              <p className="text-gray-500">{errorMessage || 'Failed to load video'}</p>
+            </div>
+          )}
+          {src && !loading && !error && (
+            <video
+              ref={videoRef}
+              src={src}
+              className="w-full h-full object-cover"
+              controls
+              playsInline
+              preload="auto"
+              poster={displayPoster || undefined}
+              onError={handleVideoError}
+            />
+          )}
+        </>
+      )}
+
+      <canvas ref={canvasRef} className="hidden" />
+
+      {/* Rest of UI */}
+      <div className="p-4">
+        {displayTitle && (
+          <h3 className="text-lg font-semibold mb-2">{displayTitle}</h3>
+        )}
+
+        <CardFooter className="flex items-center justify-between p-0 pt-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLike}
+              disabled={isLiking || likeLoading}
+            >
+              <FlowerIcon filled={isLiked} className="w-5 h-5" />
+              <span className="ml-2">{optimisticLikes}</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+          </div>
+        </CardFooter>
+
+        {showComments && postId && (
+          <div className="mt-4">
+            <Separator className="mb-4" />
+            <Comments postId={postId} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FeedCard;
+
+
+
+
+
+
+

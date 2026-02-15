@@ -1,0 +1,56 @@
+# Firebase App Hosting - Production Environment Configuration
+# This file configures environment variables for production deployments
+# Replace all placeholder values with your actual Firebase credentials
+
+env:
+  # Firebase Client SDK Configuration (Public Variables)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyCGWOFpBL1devnWqA9SSbBkHBM-Ent8OYM" # Replace with your actual API key from Firebase Console
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "studio-9632556640-bd58d.firebaseapp.com" # Replace with your actual auth domain
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "studio-9632556640-bd58d" # Replace with your actual project ID
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "studio-9632556640-bd58d.firebasestorage.app" # Replace with your actual storage bucket
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "435313355929" # Replace with your actual messaging sender ID
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:435313355929:web:c3266137390bee318f5c08" # Replace with your actual app ID
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  # Firebase Admin SDK Configuration (Server-Side Only)
+  # Paste the entire JSON service account key as a single line string
+  # Get this from Firebase Console → Project Settings → Service Accounts → Generate New Private Key
+  # IMPORTANT: For security, consider using Google Cloud Secret Manager instead (see documentation)
+  - variable: FIREBASE_SERVICE_ACCOUNT_KEY
+    value: 'REDACTED_FOR_BACKUP_SET_IN_FIREBASE_OR_VERCEL_ENV' # Replace with your actual service account key JSON (one line)
+    availability:
+      - BUILD
+      - RUNTIME
+
+# Optional: Build configuration
+# build:
+#   buildCommand: npm run build
+#   runCommand: npm run start

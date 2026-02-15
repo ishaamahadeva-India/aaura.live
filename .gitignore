@@ -1,0 +1,48 @@
+# Firebase
+serviceAccountKey.json
+src/lib/firebase/secrets/serviceAccountKey.json
+.firebase/
+*-debug.log
+firebase-debug.log
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs and editors
+.idea
+.vscode/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Firebase service account key
+serviceAccountKey.json
+videos/
+*.mp4
+*.webm
+*.mov
