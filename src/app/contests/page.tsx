@@ -24,7 +24,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format, formatDistanceToNow, differenceInSeconds } from 'date-fns';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -485,7 +485,7 @@ function ContestContent({ contest }: { contest: DocumentData }) {
         <Card className="w-full max-w-5xl shadow-2xl overflow-hidden border-primary/20 bg-gradient-to-br from-background to-primary/5">
             {/* Hero Section with Image */}
             <div className="relative h-80 w-full overflow-hidden">
-                <Image 
+                <SafeImage 
                     src={contest?.imageUrl || `https://picsum.photos/seed/${contest?.id || 'contest'}/1200/600`} 
                     alt={contest?.title || 'Contest'}
                     data-ai-hint={contest?.imageHint || "spiritual event"}

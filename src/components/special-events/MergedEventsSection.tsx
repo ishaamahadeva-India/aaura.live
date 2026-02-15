@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { format, formatDistanceToNow } from 'date-fns';
 import { getEffectiveScheduledTime } from '@/utils/samuhikaa-recurrence';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface MergedEvent {
   id: string;
@@ -203,7 +203,7 @@ export function MergedEventsSection() {
                     <div className="flex gap-3">
                       {event.imageUrl ? (
                         <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0">
-                          <Image
+                          <SafeImage
                             src={event.imageUrl}
                             alt={event.title}
                             fill

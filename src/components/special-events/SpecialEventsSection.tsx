@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { format, formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface SpecialEvent {
   id: string;
@@ -155,7 +155,7 @@ export function SpecialEventsSection() {
                   {/* Image or Icon */}
                   <div className="relative w-20 h-20 shrink-0 bg-secondary rounded-l-lg overflow-hidden">
                     {event.imageUrl ? (
-                      <Image
+                      <SafeImage
                         src={event.imageUrl}
                         alt={event.title}
                         fill

@@ -2,7 +2,7 @@
 'use client';
 import { useLanguage } from "@/hooks/use-language";
 import Link from 'next/link';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCollectionData } from 'react-firebase-hooks/firestore';
@@ -43,7 +43,7 @@ export function RightSidebar() {
               <Link href={`/contests`} key={contest.id} className="block group">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-secondary">
-                    {imageUrl && <Image src={imageUrl} alt={contest.title} data-ai-hint={contest.imageHint} fill className="object-cover" />}
+                    {imageUrl && <SafeImage src={imageUrl} alt={contest.title} data-ai-hint={contest.imageHint} fill className="object-cover" />}
                   </div>
                   <div>
                       <p className="font-semibold text-sm group-hover:text-primary line-clamp-2">{contest.title}</p>
@@ -70,7 +70,7 @@ export function RightSidebar() {
               <Link href={`/stories/${saga.slug}`} key={saga.id} className="block group">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-secondary">
-                      {imageUrl && <Image src={imageUrl} alt={title} data-ai-hint={saga.image.hint} fill className="object-cover" />}
+                      {imageUrl && <SafeImage src={imageUrl} alt={title} data-ai-hint={saga.image.hint} fill className="object-cover" />}
                   </div>
                   <div>
                       <p className="font-semibold text-sm group-hover:text-primary line-clamp-2">{title}</p>
@@ -97,7 +97,7 @@ export function RightSidebar() {
               <Link href={`/temples/${temple.slug}`} key={temple.id} className="block group">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-secondary">
-                      {imageUrl && <Image src={imageUrl} alt={title} data-ai-hint={temple.media.images[0].hint} fill className="object-cover" />}
+                      {imageUrl && <SafeImage src={imageUrl} alt={title} data-ai-hint={temple.media.images[0].hint} fill className="object-cover" />}
                   </div>
                   <div>
                       <p className="font-semibold text-sm group-hover:text-primary line-clamp-2">{title}</p>
@@ -124,7 +124,7 @@ export function RightSidebar() {
               <Link href={`/festivals/${festival.slug}`} key={festival.id} className="block group">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-secondary">
-                    {imageUrl && <Image src={imageUrl} alt={festival.name[language] || festival.name.en} fill className="object-cover" />}
+                    {imageUrl && <SafeImage src={imageUrl} alt={festival.name[language] || festival.name.en} fill className="object-cover" />}
                   </div>
                   <div>
                       <p className="font-semibold text-sm group-hover:text-primary">{festival.name[language] || festival.name.en}</p>
@@ -151,7 +151,7 @@ export function RightSidebar() {
               <Link href={`/deities/${deity.slug}`} key={deity.id} className="block group">
                   <div className="flex items-center gap-3">
                       <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 bg-secondary">
-                          {imageUrl && <Image src={imageUrl} alt={deity.name[language] || deity.name.en} fill className="object-cover" />}
+                          {imageUrl && <SafeImage src={imageUrl} alt={deity.name[language] || deity.name.en} fill className="object-cover" />}
                       </div>
                       <div>
                           <p className="font-semibold text-sm group-hover:text-primary">{deity.name[language] || deity.name.en}</p>

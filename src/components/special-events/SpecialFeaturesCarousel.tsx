@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { getEffectiveScheduledTime } from '@/utils/samuhikaa-recurrence';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface QuickFeature {
   id: string;
@@ -182,7 +182,7 @@ export function SpecialFeaturesCarousel() {
                 {/* Image or Gradient Background - Left side */}
                 <div className="relative w-[90px] h-full bg-gradient-to-br from-primary/20 to-primary/5 shrink-0">
                   {feature.imageUrl ? (
-                    <Image
+                    <SafeImage
                       src={feature.imageUrl}
                       alt={feature.title}
                       fill
